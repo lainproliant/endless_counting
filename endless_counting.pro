@@ -17,14 +17,18 @@ TEMPLATE = app
 SOURCES += main.cpp\
         endlessmainwindow.cpp
 
+INCLUDEPATH += toolbox/include
+
 HEADERS  += endlessmainwindow.h \
     hexgridwidget.h \
     hex.h \
     hexgridscrollarea.h \
     counting_hex.h \
-    counting_hexgridwidget.h
+    counting_hexgridwidget.h \
+    settings.h
 
-FORMS    += endlessmainwindow.ui
+FORMS    += endlessmainwindow.ui \
+    about.ui
 
 RESOURCES += \
     endless.qrc

@@ -20,6 +20,9 @@ namespace endless {
    {
        Q_OBJECT
 
+   signals:
+       void updated();
+
    public:
        explicit HexgridWidget(QWidget *parent = 0) :
            QWidget(parent) {
@@ -43,6 +46,23 @@ namespace endless {
        bool has_focused_hex() const {
            return focused_hex.x() >= 0 && focused_hex.x() < hexgrid->get_width() &&
                   focused_hex.y() >= 0 && focused_hex.y() < hexgrid->get_height();
+       }
+
+       void clear_focus() {
+           focused_hex = QPoint(-1, -1);
+       }
+
+       Hexgrid& get_hexgrid() {
+           return *hexgrid;
+       }
+
+       double get_hex_radius() const {
+           return hex_radius;
+       }
+
+       void set_hex_radius(double radius) {
+           hex_radius = radius;
+           adjust_size();
        }
 
        virtual ~HexgridWidget() { }
@@ -87,7 +107,7 @@ namespace endless {
           }
        }
 
-       virtual void mouseMoveEvent(QMouseEvent* event) {
+       QPoint calculate_focused_hex(QMouseEvent* event) {
            int x = event->x(), y = event->y(), x_adj = 0.0;
            double grid_box_width =  2 * hex_radius * HEX_WIDTH_RATIO;
            double grid_box_height = 1.5 * hex_radius;
@@ -105,9 +125,20 @@ namespace endless {
                hex_y >= 0 && hex_y < hexgrid->get_height()) {
 
               if (! (hex_x == focused_hex.x() && hex_y == focused_hex.y())) {
-                 focused_hex = QPoint(hex_x, hex_y);
-                 repaint();
+                 return QPoint(hex_x, hex_y);
               }
+           }
+
+           return focused_hex;
+       }
+
+       virtual void mouseMoveEvent(QMouseEvent* event) {
+           QPoint new_hex = calculate_focused_hex(event);
+           if (new_hex != focused_hex &&
+               new_hex.x() >= 0 && new_hex.x() < hexgrid->get_width() &&
+               new_hex.y() >= 0 && new_hex.y() < hexgrid->get_height()) {
+               focused_hex = new_hex;
+               repaint();
            }
        }
 
@@ -115,18 +146,6 @@ namespace endless {
            int width = 2 * hex_radius * HEX_WIDTH_RATIO * hexgrid->get_width() + hex_radius;
            int height = HEX_HEIGHT_RATIO * hex_radius * hexgrid->get_height() + hex_radius / 2;
            return QSize(width, height);
-       }
-
-       Hexgrid& get_hexgrid() {
-           return *hexgrid;
-       }
-
-       double get_hex_radius() const {
-           return hex_radius;
-       }
-
-       void set_hex_radius(double radius) {
-           hex_radius = radius;
        }
 
        void adjust_size() {

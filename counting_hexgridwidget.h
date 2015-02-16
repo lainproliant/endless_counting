@@ -12,6 +12,11 @@ namespace endless {
    class MapHexgridWidget : public HexgridWidget {
       Q_OBJECT
 
+   public:
+       MapHexgridWidget(QWidget* statusHandler) : HexgridWidget() {
+           connect(this, SIGNAL(updated()), statusHandler, SLOT(updateStatus()));
+       }
+
    protected:
        virtual shared_ptr<Hexgrid> create_hexgrid() override {
            return make_shared<MapHexgrid>();
@@ -39,6 +44,20 @@ namespace endless {
                            get_focused_hex<Hex>()->get_point() == hex->get_point());
        }
 
+
+       void mouseReleaseEvent(QMouseEvent* event) {
+           switch (event->button()) {
+           case Qt::LeftButton:
+               draw_land = false;
+               break;
+           case Qt::RightButton:
+               draw_water = false;
+               break;
+           default:
+               break;
+           }
+       }
+
        void mousePressEvent(QMouseEvent* event) {
            shared_ptr<MapHex> hex = get_focused_hex<MapHex>();
 
@@ -48,26 +67,49 @@ namespace endless {
 
            switch (event->button()) {
            case Qt::LeftButton:
-               if (hex->get_type() == MapHex::Type::EMPTY) {
+               if (hex->get_type() == MapHex::Type::GROUND) {
                    get_hexgrid().put(make_shared<DistrictHex>(hex->get_point()));
 
                } else if (hex->get_type() == MapHex::Type::WATER) {
-                   get_hexgrid().put(make_shared<EmptyHex>(hex->get_point()));
+                   get_hexgrid().put(make_shared<GroundHex>(hex->get_point()));
                }
+               draw_land = true;
                break;
 
            case Qt::RightButton:
-               if (hex->get_type() == MapHex::Type::DISTRICT) {
-                   get_hexgrid().put(make_shared<EmptyHex>(hex->get_point()));
+               get_hexgrid().put(make_shared<WaterHex>(hex->get_point()));
+               draw_water = true;
+               break;
 
-               } else if (hex->get_type() == MapHex::Type::EMPTY) {
-                   get_hexgrid().put(make_shared<WaterHex>(hex->get_point()));
-               }
+           default:
                break;
            }
 
            get_hexgrid().update();
+           emit updated();
            repaint();
        }
+
+       virtual void mouseMoveEvent(QMouseEvent *event) {
+           HexgridWidget::mouseMoveEvent(event);
+
+           shared_ptr<MapHex> hex = get_focused_hex<MapHex>();
+
+           if (hex == nullptr) {
+               return;
+
+           } else if (draw_water && hex->get_type() != MapHex::Type::WATER) {
+               get_hexgrid().put(make_shared<WaterHex>(hex->get_point()));
+               repaint();
+
+           } else if (draw_land && hex->get_type() == MapHex::Type::WATER) {
+               get_hexgrid().put(make_shared<GroundHex>(hex->get_point()));
+               repaint();
+           }
+       }
+
+   private:
+       bool draw_water = false;
+       bool draw_land = false;
    };
 }
