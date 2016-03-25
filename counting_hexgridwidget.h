@@ -6,8 +6,7 @@
 namespace endless {
    using namespace std;
 
-   const QImage WATER_IMAGE = QImage(":/images/water.png");
-   const QBrush WATER_BRUSH = QBrush(WATER_IMAGE);
+   const QBrush WATER_BRUSH = QBrush(QColor::fromRgb(0x318CE7));
 
    class MapHexgridWidget : public HexgridWidget {
       Q_OBJECT

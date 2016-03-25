@@ -10,6 +10,10 @@
 namespace endless {
    using namespace std;
 
+#ifndef M_PI
+#define M_PI 3.1415926535
+#endif
+
    const double HEX_WIDTH_RATIO = cos(M_PI / 6.0);
    const double HEX_HEIGHT_RATIO = 1.5;
 
